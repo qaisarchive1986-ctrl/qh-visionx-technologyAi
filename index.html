@@ -1,0 +1,482 @@
+from pathlib import Path
+import zipfile, textwrap
+
+root = Path("/mnt/data/qh-dari-pashto-final")
+root.mkdir(parents=True, exist_ok=True)
+
+index_html = r'''<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#07111f">
+  <meta name="description" content="QH VisionX Response — پلتفرم هوشمند پاسخ‌گویی اضطراری، نقشه، موقعیت GPS، مدیریت رویداد و هماهنگی میدانی.">
+  <meta name="keywords" content="QH VisionX, QH Dari Pashto, emergency response, افغانستان, دری, پشتو, GPS, incident management">
+  <meta property="og:title" content="QH VisionX Response">
+  <meta property="og:description" content="پلتفرم هوشمند پاسخ‌گویی اضطراری و هماهنگی میدانی">
+  <meta property="og:type" content="website">
+  <title>QH VisionX Response | QH Dari-Pashto</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="page-bg"></div>
+
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="#home" aria-label="QH VisionX">
+        <span class="brand-mark">QH</span>
+        <span>
+          <strong>QH VisionX</strong>
+          <small>Response Platform</small>
+        </span>
+      </a>
+
+      <button class="menu-btn" id="menuBtn" aria-label="باز کردن منو" aria-expanded="false">☰</button>
+
+      <nav id="mainNav" class="main-nav">
+        <a href="#home" data-i18n="navHome">خانه</a>
+        <a href="#features" data-i18n="navFeatures">امکانات</a>
+        <a href="#modules" data-i18n="navModules">ماژول‌ها</a>
+        <a href="#about" data-i18n="navAbout">درباره</a>
+        <a href="#contact" data-i18n="navContact">تماس</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="icon-btn" id="themeBtn" title="تغییر حالت رنگ" aria-label="تغییر حالت رنگ">☾</button>
+        <button class="lang-btn" id="langBtn" aria-label="تغییر زبان">دری</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="home">
+    <section class="hero section">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="pulse"></span><span data-i18n="eyebrow">پلتفرم پاسخ‌گویی هوشمند</span></div>
+          <h1 data-i18n="heroTitle">پاسخ سریع‌تر، هماهنگی بهتر، تصمیم‌گیری هوشمندتر.</h1>
+          <p data-i18n="heroText">
+            QH VisionX Response یک پلتفرم سبک، امن و قابل استفاده در حالت آفلاین برای مدیریت رویدادها،
+            موقعیت GPS، نقشه، هماهنگی تیم‌های میدانی و ثبت اطلاعات اضطراری است.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#modules" data-i18n="explore">مشاهده امکانات</a>
+            <button class="btn btn-secondary" id="locationBtn" data-i18n="location">دریافت موقعیت من</button>
+          </div>
+
+          <div class="trust-row">
+            <span>✓ <span data-i18n="offline">آماده برای حالت آفلاین</span></span>
+            <span>✓ <span data-i18n="responsive">موبایل و دسکتاپ</span></span>
+            <span>✓ <span data-i18n="static">مناسب GitHub Pages</span></span>
+          </div>
+        </div>
+
+        <div class="hero-panel" aria-label="نمایش داشبورد">
+          <div class="panel-top">
+            <span class="status-dot"></span>
+            <span data-i18n="liveDashboard">داشبورد عملیاتی</span>
+            <span class="panel-time" id="liveTime">--:--</span>
+          </div>
+          <div class="map-card">
+            <div class="map-grid"></div>
+            <div class="route route-a"></div>
+            <div class="route route-b"></div>
+            <div class="map-pin pin-1">●</div>
+            <div class="map-pin pin-2">●</div>
+            <div class="map-pin pin-3">●</div>
+            <div class="map-label label-1">Incident</div>
+            <div class="map-label label-2">Team A</div>
+            <div class="map-label label-3">GPS</div>
+            <div class="map-center">QH</div>
+          </div>
+          <div class="metric-grid">
+            <div class="metric"><span data-i18n="incidents">رویدادها</span><strong>24</strong></div>
+            <div class="metric"><span data-i18n="teams">تیم‌های فعال</span><strong>08</strong></div>
+            <div class="metric"><span data-i18n="locations">موقعیت‌ها</span><strong>137</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker" data-i18n="featuresKicker">قابلیت‌های اصلی</span>
+          <h2 data-i18n="featuresTitle">ابزارهایی برای یک عملیات منظم و قابل مشاهده</h2>
+          <p data-i18n="featuresText">ساختار ساده، رابط کاربری سریع و طراحی شده برای استفاده در شرایط مختلف.</p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card">
+            <div class="feature-icon">⌖</div>
+            <h3 data-i18n="f1Title">موقعیت GPS</h3>
+            <p data-i18n="f1Text">ثبت موقعیت فعلی و نمایش مختصات برای استفاده در عملیات میدانی.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">⌁</div>
+            <h3 data-i18n="f2Title">نقشه و مسیر</h3>
+            <p data-i18n="f2Text">نمایش نقاط مهم، مسیرها و اطلاعات مکانی در یک نمای ساده و قابل فهم.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">!</div>
+            <h3 data-i18n="f3Title">مدیریت رویداد</h3>
+            <p data-i18n="f3Text">ثبت، اولویت‌بندی و پیگیری رویدادهای اضطراری و عملیاتی.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">◎</div>
+            <h3 data-i18n="f4Title">هماهنگی تیمی</h3>
+            <p data-i18n="f4Text">کمک به هماهنگی بهتر تیم‌ها، وظایف و وضعیت عملیات.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">◌</div>
+            <h3 data-i18n="f5Title">آماده برای آفلاین</h3>
+            <p data-i18n="f5Text">ساختار سبک استاتیک برای دسترسی پایدارتر در شرایط محدودیت اتصال.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">⌘</div>
+            <h3 data-i18n="f6Title">دسترسی‌پذیر</h3>
+            <p data-i18n="f6Text">کنتراست مناسب، ناوبری صفحه‌کلید و ساختار semantic برای دسترسی بهتر.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="modules" class="section section-alt">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker" data-i18n="modulesKicker">ماژول‌های پیشنهادی</span>
+          <h2 data-i18n="modulesTitle">یک هسته ساده برای مدیریت عملیات</h2>
+        </div>
+
+        <div class="module-grid">
+          <button class="module-card" data-module="incidents">
+            <span class="module-number">01</span><span class="module-icon">⚠</span>
+            <strong data-i18n="m1">ثبت رویداد</strong><small data-i18n="m1s">Incident Management</small>
+          </button>
+          <button class="module-card" data-module="gps">
+            <span class="module-number">02</span><span class="module-icon">⌖</span>
+            <strong data-i18n="m2">موقعیت و GPS</strong><small data-i18n="m2s">Location Tracking</small>
+          </button>
+          <button class="module-card" data-module="teams">
+            <span class="module-number">03</span><span class="module-icon">◉</span>
+            <strong data-i18n="m3">تیم‌های میدانی</strong><small data-i18n="m3s">Field Coordination</small>
+          </button>
+          <button class="module-card" data-module="reports">
+            <span class="module-number">04</span><span class="module-icon">▤</span>
+            <strong data-i18n="m4">گزارش‌ها</strong><small data-i18n="m4s">Reports & Records</small>
+          </button>
+          <button class="module-card" data-module="offline">
+            <span class="module-number">05</span><span class="module-icon">◒</span>
+            <strong data-i18n="m5">حالت آفلاین</strong><small data-i18n="m5s">Offline Ready</small>
+          </button>
+          <button class="module-card" data-module="security">
+            <span class="module-number">06</span><span class="module-icon">◆</span>
+            <strong data-i18n="m6">امنیت و حریم خصوصی</strong><small data-i18n="m6s">Security by Design</small>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section">
+      <div class="container about-grid">
+        <div>
+          <span class="section-kicker" data-i18n="aboutKicker">درباره پروژه</span>
+          <h2 data-i18n="aboutTitle">ساخته‌شده با تمرکز بر سادگی، سرعت و قابلیت توسعه.</h2>
+          <p data-i18n="aboutText">
+            این نسخه یک Front-end استاتیک و مستقل است که می‌تواند مستقیماً روی GitHub Pages اجرا شود.
+            برای اتصال به API، پایگاه داده، احراز هویت یا نقشه زنده می‌توان در مرحله بعد Backend اضافه کرد.
+          </p>
+        </div>
+        <div class="tech-card">
+          <div><span>Frontend</span><strong>HTML5 + CSS3 + JavaScript</strong></div>
+          <div><span>Hosting</span><strong>GitHub Pages</strong></div>
+          <div><span>Direction</span><strong>RTL / LTR</strong></div>
+          <div><span>Responsive</span><strong>Mobile / Tablet / Desktop</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="section section-cta">
+      <div class="container cta">
+        <div>
+          <span class="section-kicker" data-i18n="ctaKicker">QH VisionX</span>
+          <h2 data-i18n="ctaTitle">یک رابط حرفه‌ای برای پروژه‌ای که می‌تواند توسعه پیدا کند.</h2>
+          <p data-i18n="ctaText">این صفحه بدون وابستگی به Framework و بدون نیاز به Backend اجرا می‌شود.</p>
+        </div>
+        <a class="btn btn-primary" href="https://github.com/qaisarchive1986-ctrl/qh-dari-pashto" target="_blank" rel="noopener" data-i18n="github">مشاهده Repository</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-wrap">
+      <span>© <span id="year"></span> QH VisionX</span>
+      <span data-i18n="footerText">ساخته‌شده برای وب سریع، ساده و قابل توسعه.</span>
+    </div>
+  </footer>
+
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" data-close-modal aria-label="بستن">×</button>
+      <span class="section-kicker">QH VisionX</span>
+      <h3 id="modalTitle">ماژول</h3>
+      <p id="modalText"></p>
+      <div class="modal-status"><span class="status-dot"></span><span data-i18n="demoStatus">نسخه نمایشی رابط کاربری</span></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+'''
+
+style_css = r'''*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050b14;--bg2:#081321;--surface:rgba(12,25,41,.78);--surface2:#0d1b2b;
+  --text:#f5f8fc;--muted:#9caec2;--line:rgba(255,255,255,.10);
+  --blue:#00d4ff;--blue2:#0066cc;--green:#19d3a2;--shadow:0 24px 70px rgba(0,0,0,.35);
+}
+body.light{
+  --bg:#f4f8fc;--bg2:#eaf1f8;--surface:rgba(255,255,255,.86);--surface2:#fff;
+  --text:#0a1725;--muted:#526579;--line:rgba(8,25,42,.12);--shadow:0 18px 50px rgba(18,50,80,.13)
+}
+html{scroll-behavior:smooth}
+body{font-family:"Tajawal",system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.8;min-height:100vh}
+button,a{font:inherit}a{text-decoration:none;color:inherit}button{cursor:pointer;border:0}
+.page-bg{position:fixed;inset:0;pointer-events:none;z-index:-2;background:
+ radial-gradient(circle at 15% 15%,rgba(0,212,255,.12),transparent 28%),
+ radial-gradient(circle at 85% 35%,rgba(0,102,204,.15),transparent 30%),
+ linear-gradient(145deg,var(--bg),var(--bg2))}
+.container{width:min(1160px,calc(100% - 36px));margin:auto}
+.site-header{position:sticky;top:0;z-index:50;background:rgba(5,11,20,.74);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+body.light .site-header{background:rgba(244,248,252,.78)}
+.nav-wrap{min-height:76px;display:flex;align-items:center;gap:26px}
+.brand{display:flex;align-items:center;gap:11px;margin-left:auto}
+.brand-mark{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-weight:900;letter-spacing:-1px;background:linear-gradient(135deg,var(--blue),var(--blue2));color:white;box-shadow:0 10px 30px rgba(0,170,255,.25)}
+.brand strong{display:block;font-size:16px;line-height:1.1}
+.brand small{display:block;color:var(--muted);font-size:10px;margin-top:3px;direction:ltr}
+.main-nav{display:flex;gap:23px;margin:auto}
+.main-nav a{color:var(--muted);font-size:14px;font-weight:700;transition:.2s}
+.main-nav a:hover{color:var(--text)}
+.nav-actions{display:flex;align-items:center;gap:8px}
+.icon-btn,.lang-btn,.menu-btn{height:40px;min-width:40px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:12px}
+.lang-btn{padding:0 12px;font-size:12px;font-weight:800}.menu-btn{display:none}
+.section{padding:100px 0}.hero{padding-top:72px;min-height:720px;display:flex;align-items:center}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:70px;align-items:center}
+.hero-copy{direction:rtl}.eyebrow{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(0,212,255,.22);background:rgba(0,212,255,.06);padding:6px 12px;border-radius:999px;color:#7feaff;font-size:12px;font-weight:800}
+.pulse,.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;box-shadow:0 0 0 5px rgba(25,211,162,.12)}
+.hero h1{font-size:clamp(38px,5.4vw,70px);line-height:1.12;letter-spacing:-2px;margin:20px 0}
+.hero p{font-size:17px;color:var(--muted);max-width:650px}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.btn{min-height:50px;padding:0 22px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;transition:.2s}
+.btn:hover{transform:translateY(-2px)}.btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue2));color:white;box-shadow:0 12px 35px rgba(0,130,220,.25)}
+.btn-secondary{background:var(--surface);border:1px solid var(--line);color:var(--text)}
+.trust-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:24px;color:var(--muted);font-size:11px}
+.hero-panel{background:linear-gradient(145deg,rgba(15,35,55,.9),rgba(5,15,27,.86));border:1px solid rgba(255,255,255,.11);border-radius:28px;padding:18px;box-shadow:var(--shadow);transform:perspective(1200px) rotateY(-3deg)}
+body.light .hero-panel{background:var(--surface)}
+.panel-top{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);padding:3px 4px 14px}.panel-time{margin-right:auto;font-variant-numeric:tabular-nums}
+.map-card{height:360px;border-radius:20px;overflow:hidden;position:relative;background:#071727;border:1px solid var(--line)}
+.map-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(100,190,230,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(100,190,230,.08) 1px,transparent 1px);background-size:38px 38px;transform:rotate(-5deg) scale(1.15)}
+.route{position:absolute;height:3px;border-radius:9px;background:linear-gradient(90deg,transparent,var(--blue),#7eeeff,transparent);filter:drop-shadow(0 0 8px rgba(0,212,255,.7))}
+.route-a{width:80%;top:52%;right:5%;transform:rotate(-24deg)}.route-b{width:62%;top:64%;right:25%;transform:rotate(22deg)}
+.map-pin{position:absolute;color:var(--blue);text-shadow:0 0 14px var(--blue);font-size:21px}.pin-1{top:25%;right:24%}.pin-2{top:55%;left:28%;color:#19d3a2}.pin-3{bottom:18%;right:42%;color:#fff}
+.map-label{position:absolute;padding:3px 7px;background:rgba(3,12,22,.78);border:1px solid var(--line);border-radius:6px;font-size:9px;color:#bfeeff}.label-1{top:20%;right:29%}.label-2{top:50%;left:22%}.label-3{bottom:13%;right:37%}
+.map-center{position:absolute;inset:0;display:grid;place-items:center;font-size:68px;font-weight:900;color:rgba(255,255,255,.025)}
+.metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}.metric{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:13px;padding:10px;text-align:center}.metric span{display:block;color:var(--muted);font-size:10px}.metric strong{font-size:21px;line-height:1.1}
+.section-head{text-align:center;max-width:740px;margin:0 auto 48px}.section-kicker{display:inline-block;color:var(--blue);font-size:12px;font-weight:900;letter-spacing:.5px}.section-head h2,.about-grid h2,.cta h2{font-size:clamp(28px,4vw,44px);line-height:1.2;margin:9px 0 12px;letter-spacing:-1px}.section-head p,.about-grid p,.cta p{color:var(--muted)}
+.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.feature-card{padding:25px;border:1px solid var(--line);background:var(--surface);border-radius:20px;transition:.25s}.feature-card:hover{transform:translateY(-5px);border-color:rgba(0,212,255,.3);box-shadow:var(--shadow)}.feature-icon{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(0,212,255,.17),rgba(0,102,204,.12));color:var(--blue);font-size:23px;font-weight:900;margin-bottom:17px}.feature-card h3{font-size:18px;margin-bottom:6px}.feature-card p{font-size:13px;color:var(--muted)}
+.section-alt{background:rgba(0,0,0,.12);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.module-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.module-card{text-align:right;padding:22px;background:var(--surface);border:1px solid var(--line);border-radius:18px;color:var(--text);transition:.2s;display:grid;grid-template-columns:45px 1fr auto;grid-template-areas:"num icon icon" "num title title" "num sub sub";align-items:center;gap:2px 12px}.module-card:hover{transform:translateY(-3px);border-color:rgba(0,212,255,.35)}.module-number{grid-area:num;font-size:27px;font-weight:900;color:rgba(0,212,255,.25);direction:ltr}.module-icon{grid-area:icon;color:var(--blue);font-size:19px}.module-card strong{grid-area:title;font-size:15px}.module-card small{grid-area:sub;color:var(--muted);font-size:10px;direction:ltr;text-align:right}
+.about-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:70px;align-items:center}.about-grid h2{max-width:650px}.about-grid p{max-width:650px}.tech-card{border:1px solid var(--line);background:var(--surface);border-radius:22px;padding:9px}.tech-card div{display:flex;justify-content:space-between;gap:20px;padding:16px 15px;border-bottom:1px solid var(--line);font-size:12px}.tech-card div:last-child{border-bottom:0}.tech-card span{color:var(--muted)}.tech-card strong{direction:ltr;font-size:11px}
+.section-cta{padding-top:45px;padding-bottom:85px}.cta{border:1px solid rgba(0,212,255,.2);border-radius:25px;padding:38px 42px;background:linear-gradient(135deg,rgba(0,212,255,.09),rgba(0,102,204,.05));display:flex;align-items:center;justify-content:space-between;gap:30px}.cta h2{font-size:30px}.cta p{font-size:13px}
+.footer{border-top:1px solid var(--line);padding:25px 0;color:var(--muted);font-size:11px}.footer-wrap{display:flex;justify-content:space-between;gap:20px}
+.modal{position:fixed;inset:0;z-index:100;display:none}.modal.show{display:block}.modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(5px)}.modal-box{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(500px,calc(100% - 30px));background:var(--surface2);border:1px solid var(--line);border-radius:24px;padding:30px;box-shadow:var(--shadow)}.modal-box h3{font-size:27px;margin:8px 0}.modal-box p{color:var(--muted);font-size:14px}.modal-close{position:absolute;top:13px;left:15px;background:transparent;color:var(--muted);font-size:27px}.modal-status{display:flex;align-items:center;gap:10px;margin-top:22px;font-size:11px;color:var(--muted)}
+.toast{position:fixed;bottom:25px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#071522;color:#fff;border:1px solid rgba(0,212,255,.25);padding:11px 17px;border-radius:12px;font-size:12px;transition:.25s;z-index:150;box-shadow:var(--shadow)}.toast.show{opacity:1;transform:translate(-50%,0)}
+[dir="ltr"] .brand,[dir="ltr"] .hero-copy{direction:ltr}[dir="ltr"] .brand{margin-right:auto;margin-left:0}[dir="ltr"] .module-card{text-align:left}[dir="ltr"] .module-card small{text-align:left}
+@media(max-width:900px){.hero-grid,.about-grid{grid-template-columns:1fr}.hero{padding-top:50px}.hero-panel{max-width:650px;margin:auto}.feature-grid,.module-grid{grid-template-columns:repeat(2,1fr)}.main-nav{gap:14px}.cta{align-items:flex-start;flex-direction:column}}
+@media(max-width:700px){.container{width:min(100% - 24px,1160px)}.site-header{position:sticky}.main-nav{display:none;position:absolute;top:76px;right:12px;left:12px;padding:14px;background:var(--surface2);border:1px solid var(--line);border-radius:17px;flex-direction:column;gap:3px;box-shadow:var(--shadow)}.main-nav.open{display:flex}.main-nav a{padding:9px 10px}.menu-btn{display:block}.nav-actions{margin-right:0}.brand{margin-left:auto}.hero{min-height:auto;padding-bottom:70px}.hero h1{font-size:40px;letter-spacing:-1px}.hero p{font-size:15px}.feature-grid,.module-grid{grid-template-columns:1fr}.section{padding:72px 0}.map-card{height:300px}.cta{padding:28px}.footer-wrap{flex-direction:column}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
+'''
+
+script_js = r'''const translations = {
+  fa: {
+    navHome:"خانه",navFeatures:"امکانات",navModules:"ماژول‌ها",navAbout:"درباره",navContact:"تماس",
+    eyebrow:"پلتفرم پاسخ‌گویی هوشمند",heroTitle:"پاسخ سریع‌تر، هماهنگی بهتر، تصمیم‌گیری هوشمندتر.",
+    heroText:"QH VisionX Response یک پلتفرم سبک، امن و قابل استفاده در حالت آفلاین برای مدیریت رویدادها، موقعیت GPS، نقشه، هماهنگی تیم‌های میدانی و ثبت اطلاعات اضطراری است.",
+    explore:"مشاهده امکانات",location:"دریافت موقعیت من",offline:"آماده برای حالت آفلاین",responsive:"موبایل و دسکتاپ",static:"مناسب GitHub Pages",
+    liveDashboard:"داشبورد عملیاتی",incidents:"رویدادها",teams:"تیم‌های فعال",locations:"موقعیت‌ها",
+    featuresKicker:"قابلیت‌های اصلی",featuresTitle:"ابزارهایی برای یک عملیات منظم و قابل مشاهده",featuresText:"ساختار ساده، رابط کاربری سریع و طراحی شده برای استفاده در شرایط مختلف.",
+    f1Title:"موقعیت GPS",f1Text:"ثبت موقعیت فعلی و نمایش مختصات برای استفاده در عملیات میدانی.",
+    f2Title:"نقشه و مسیر",f2Text:"نمایش نقاط مهم، مسیرها و اطلاعات مکانی در یک نمای ساده و قابل فهم.",
+    f3Title:"مدیریت رویداد",f3Text:"ثبت، اولویت‌بندی و پیگیری رویدادهای اضطراری و عملیاتی.",
+    f4Title:"هماهنگی تیمی",f4Text:"کمک به هماهنگی بهتر تیم‌ها، وظایف و وضعیت عملیات.",
+    f5Title:"آماده برای آفلاین",f5Text:"ساختار سبک استاتیک برای دسترسی پایدارتر در شرایط محدودیت اتصال.",
+    f6Title:"دسترسی‌پذیر",f6Text:"کنتراست مناسب، ناوبری صفحه‌کلید و ساختار semantic برای دسترسی بهتر.",
+    modulesKicker:"ماژول‌های پیشنهادی",modulesTitle:"یک هسته ساده برای مدیریت عملیات",
+    m1:"ثبت رویداد",m1s:"Incident Management",m2:"موقعیت و GPS",m2s:"Location Tracking",m3:"تیم‌های میدانی",m3s:"Field Coordination",m4:"گزارش‌ها",m4s:"Reports & Records",m5:"حالت آفلاین",m5s:"Offline Ready",m6:"امنیت و حریم خصوصی",m6s:"Security by Design",
+    aboutKicker:"درباره پروژه",aboutTitle:"ساخته‌شده با تمرکز بر سادگی، سرعت و قابلیت توسعه.",aboutText:"این نسخه یک Front-end استاتیک و مستقل است که می‌تواند مستقیماً روی GitHub Pages اجرا شود. برای اتصال به API، پایگاه داده، احراز هویت یا نقشه زنده می‌توان در مرحله بعد Backend اضافه کرد.",
+    ctaKicker:"QH VisionX",ctaTitle:"یک رابط حرفه‌ای برای پروژه‌ای که می‌تواند توسعه پیدا کند.",ctaText:"این صفحه بدون وابستگی به Framework و بدون نیاز به Backend اجرا می‌شود.",github:"مشاهده Repository",footerText:"ساخته‌شده برای وب سریع، ساده و قابل توسعه.",demoStatus:"نسخه نمایشی رابط کاربری"
+  },
+  ps: {
+    navHome:"کور",navFeatures:"ځانګړتیاوې",navModules:"ماډیولونه",navAbout:"د پروژې په اړه",navContact:"اړیکه",
+    eyebrow:"هوښیار اضطراري ځواب ورکولو پلاتفورم",heroTitle:"چټک ځواب، ښه همغږي، هوښیارې پرېکړې.",
+    heroText:"QH VisionX Response یو سپک او د آفلاین کار وړ پلاتفورم دی چې د پېښو مدیریت، GPS موقعیت، نقشې، ساحوي ټیمونو همغږي او اضطراري معلوماتو ثبت لپاره جوړ شوی.",
+    explore:"ځانګړتیاوې وګورئ",location:"زما موقعیت ترلاسه کړئ",offline:"آفلاین کار ته چمتو",responsive:"موبایل او ډیسټاپ",static:"د GitHub Pages لپاره مناسب",
+    liveDashboard:"عملیاتي ډشبورډ",incidents:"پېښې",teams:"فعال ټیمونه",locations:"موقعیتونه",
+    featuresKicker:"اصلي ځانګړتیاوې",featuresTitle:"د منظم او روښانه عملیاتو لپاره وسایل",featuresText:"ساده جوړښت او چټک انٹرفېس چې د بېلابېلو شرایطو لپاره طرحه شوی.",
+    f1Title:"GPS موقعیت",f1Text:"د اوسني موقعیت ثبت او د ساحوي عملیاتو لپاره د مختصاتو ښودل.",
+    f2Title:"نقشه او مسیر",f2Text:"مهم ځایونه، مسیرونه او مکاني معلومات په ساده بڼه ښودل.",
+    f3Title:"د پېښو مدیریت",f3Text:"د اضطراري او عملیاتي پېښو ثبت، لومړیتوب ورکول او تعقیب.",
+    f4Title:"د ټیمونو همغږي",f4Text:"د ټیمونو، دندو او عملیاتي وضعیت په ښه همغږۍ کې مرسته.",
+    f5Title:"آفلاین چمتووالی",f5Text:"سپک static جوړښت چې د محدود انټرنېټ په شرایطو کې د لاسرسي ملاتړ کوي.",
+    f6Title:"لاسرسی",f6Text:"مناسب contrast، keyboard navigation او semantic جوړښت.",
+    modulesKicker:"وړاندیز شوي ماډیولونه",modulesTitle:"د عملیاتو د مدیریت لپاره ساده هسته",
+    m1:"د پېښې ثبت",m1s:"Incident Management",m2:"موقعیت او GPS",m2s:"Location Tracking",m3:"ساحوي ټیمونه",m3s:"Field Coordination",m4:"راپورونه",m4s:"Reports & Records",m5:"آفلاین حالت",m5s:"Offline Ready",m6:"امنیت او محرمیت",m6s:"Security by Design",
+    aboutKicker:"د پروژې په اړه",aboutTitle:"په سادګۍ، سرعت او پراختیا تمرکز سره جوړ شوی.",aboutText:"دا نسخه یو خپلواک static Front-end دی چې مستقیم په GitHub Pages کې چلېدای شي. API، database، authentication یا live map په راتلونکي پړاو کې ورزیاتېدای شي.",
+    ctaKicker:"QH VisionX",ctaTitle:"د داسې پروژې لپاره مسلکي انٹرفېس چې پراختیا موندلی شي.",ctaText:"دا پاڼه پرته له Framework او Backend څخه کار کوي.",github:"Repository وګورئ",footerText:"د چټک، ساده او پراختیا وړ ویب لپاره جوړ شوی.",demoStatus:"د کارن انٹرفېس نمایشي نسخه"
+  },
+  en: {
+    navHome:"Home",navFeatures:"Features",navModules:"Modules",navAbout:"About",navContact:"Contact",
+    eyebrow:"Intelligent Response Platform",heroTitle:"Faster response. Better coordination. Smarter decisions.",
+    heroText:"QH VisionX Response is a lightweight, secure and offline-ready platform for incident management, GPS location, mapping, field coordination and emergency information.",
+    explore:"Explore features",location:"Get my location",offline:"Offline-ready",responsive:"Mobile & desktop",static:"GitHub Pages ready",
+    liveDashboard:"Operations dashboard",incidents:"Incidents",teams:"Active teams",locations:"Locations",
+    featuresKicker:"Core capabilities",featuresTitle:"Tools for organized, visible operations",featuresText:"A simple structure and fast interface designed for demanding field conditions.",
+    f1Title:"GPS location",f1Text:"Capture the current position and display coordinates for field operations.",
+    f2Title:"Maps & routes",f2Text:"Display key points, routes and location data in a clear operational view.",
+    f3Title:"Incident management",f3Text:"Record, prioritize and track emergency and operational incidents.",
+    f4Title:"Team coordination",f4Text:"Support coordination of teams, tasks and operational status.",
+    f5Title:"Offline-ready",f5Text:"A lightweight static architecture for more resilient access when connectivity is limited.",
+    f6Title:"Accessible",f6Text:"Good contrast, keyboard navigation and semantic structure for improved accessibility.",
+    modulesKicker:"Suggested modules",modulesTitle:"A simple core for operational management",
+    m1:"Incident logging",m1s:"Incident Management",m2:"Location & GPS",m2s:"Location Tracking",m3:"Field teams",m3s:"Field Coordination",m4:"Reports",m4s:"Reports & Records",m5:"Offline mode",m5s:"Offline Ready",m6:"Security & privacy",m6s:"Security by Design",
+    aboutKicker:"About the project",aboutTitle:"Built around simplicity, speed and extensibility.",aboutText:"This version is an independent static front-end that runs directly on GitHub Pages. An API, database, authentication or live map can be added in a later phase.",
+    ctaKicker:"QH VisionX",ctaTitle:"A professional interface for a project designed to grow.",ctaText:"This page runs without a framework dependency or backend.",github:"View repository",footerText:"Built for a fast, simple and extensible web.",demoStatus:"UI demonstration"
+  }
+};
+
+const moduleText = {
+  incidents:["ثبت رویداد","برای ثبت و پیگیری رویدادهای عملیاتی، وضعیت، اولویت و توضیحات."],
+  gps:["موقعیت و GPS","نمایش مختصات دستگاه با اجازه کاربر و آماده‌سازی برای اتصال به نقشه."],
+  teams:["تیم‌های میدانی","ساختار رابط برای نمایش تیم‌ها، وضعیت فعالیت و هماهنگی وظایف."],
+  reports:["گزارش‌ها","نمایش ساختار گزارش‌ها و سوابق برای توسعه یک سیستم گزارش‌دهی کامل."],
+  offline:["حالت آفلاین","هسته فعلی استاتیک است و برای GitHub Pages بدون Backend اجرا می‌شود."],
+  security:["امنیت و حریم خصوصی","هیچ داده GPS بدون اقدام کاربر ارسال نمی‌شود؛ برای Backend آینده باید احراز هویت و کنترل دسترسی اضافه شود."]
+};
+
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+let lang = localStorage.getItem("qhLang") || "fa";
+
+function applyLanguage(){
+  const t = translations[lang];
+  document.documentElement.lang = lang === "fa" ? "fa" : lang;
+  document.documentElement.dir = lang === "en" ? "ltr" : "rtl";
+  $$("#mainNav [data-i18n], [data-i18n]").forEach(el=>{
+    const key = el.dataset.i18n;
+    if(t[key]) el.textContent = t[key];
+  });
+  $("#langBtn").textContent = lang === "fa" ? "دری" : lang === "ps" ? "پښتو" : "EN";
+  localStorage.setItem("qhLang",lang);
+}
+
+$("#langBtn").addEventListener("click",()=>{
+  lang = lang === "fa" ? "ps" : lang === "ps" ? "en" : "fa";
+  applyLanguage();
+});
+
+$("#themeBtn").addEventListener("click",()=>{
+  document.body.classList.toggle("light");
+  localStorage.setItem("qhTheme",document.body.classList.contains("light")?"light":"dark");
+});
+if(localStorage.getItem("qhTheme")==="light") document.body.classList.add("light");
+
+$("#menuBtn").addEventListener("click",()=>{
+  const nav=$("#mainNav");
+  const open=nav.classList.toggle("open");
+  $("#menuBtn").setAttribute("aria-expanded",open);
+});
+$$(".main-nav a").forEach(a=>a.addEventListener("click",()=>$("#mainNav").classList.remove("open")));
+
+function toast(msg){
+  const el=$("#toast"); el.textContent=msg; el.classList.add("show");
+  clearTimeout(window.toastTimer); window.toastTimer=setTimeout(()=>el.classList.remove("show"),3500);
+}
+
+$("#locationBtn").addEventListener("click",()=>{
+  if(!navigator.geolocation){
+    toast(lang==="en"?"Geolocation is not supported by this browser.":"مرورگر شما از موقعیت‌یابی پشتیبانی نمی‌کند.");
+    return;
+  }
+  toast(lang==="en"?"Requesting location…":"درخواست موقعیت در حال ارسال است…");
+  navigator.geolocation.getCurrentPosition(
+    p=>{
+      const lat=p.coords.latitude.toFixed(6), lon=p.coords.longitude.toFixed(6);
+      const msg=lang==="en"?`Location: ${lat}, ${lon}`:lang==="ps"?`ستاسې موقعیت: ${lat}, ${lon}`:`موقعیت شما: ${lat}، ${lon}`;
+      toast(msg);
+    },
+    ()=>{
+      toast(lang==="en"?"Location permission was denied or unavailable.":lang==="ps"?"د موقعیت اجازه رد شوه یا موقعیت موجود نه دی.":"اجازه موقعیت رد شد یا موقعیت در دسترس نیست.");
+    },
+    {enableHighAccuracy:true,timeout:10000,maximumAge:30000}
+  );
+});
+
+const modal=$("#modal");
+$$(".module-card").forEach(card=>{
+  card.addEventListener("click",()=>{
+    const data=moduleText[card.dataset.module];
+    $("#modalTitle").textContent=lang==="en"?card.querySelector("strong").textContent:data[0];
+    $("#modalText").textContent=lang==="en"?`UI module: ${card.querySelector("small").textContent}. This static demo is ready for a future backend integration.`:data[1];
+    modal.classList.add("show"); modal.setAttribute("aria-hidden","false");
+  });
+});
+$$("[data-close-modal]").forEach(x=>x.addEventListener("click",closeModal));
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+function closeModal(){modal.classList.remove("show");modal.setAttribute("aria-hidden","true")}
+
+function clock(){
+  const d=new Date();
+  $("#liveTime").textContent=d.toLocaleTimeString(lang==="en"?"en-US":"fa-AF",{hour:"2-digit",minute:"2-digit"});
+}
+setInterval(clock,1000);clock();
+$("#year").textContent=new Date().getFullYear();
+applyLanguage();
+'''
+
+readme = r'''# QH Dari-Pashto — QH VisionX Response
+
+Static GitHub Pages website.
+
+## Files
+- `index.html` — main page
+- `style.css` — responsive UI and theme
+- `script.js` — language switcher, theme, menu, GPS demo, modal modules and clock
+
+## Deploy
+Upload the three files to the root of the `main` branch, then open:
+
+https://qaisarchive1986-ctrl.github.io/qh-dari-pashto/
+
+No build step is required.
+'''
+
+(root/"index.html").write_text(index_html, encoding="utf-8")
+(root/"style.css").write_text(style_css, encoding="utf-8")
+(root/"script.js").write_text(script_js, encoding="utf-8")
+(root/"README.md").write_text(readme, encoding="utf-8")
+
+zip_path = Path("/mnt/data/qh-dari-pashto-final.zip")
+with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+    for p in root.iterdir():
+        z.write(p, p.name)
+
+print(f"Created: {zip_path}")
+print("Files:", ", ".join(p.name for p in root.iterdir()))
